@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADT Print — CRM</title>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=Unbounded:wght@500;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Onest',system-ui,sans-serif;background:#EDEBE6;color:#22262A;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:#C7C2B8;border-radius:8px}
+::-webkit-scrollbar-track{background:transparent}
+
+.app{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:248px;flex:none;background:#181B1D;color:#EDEBE6;display:flex;flex-direction:column;padding:22px 14px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:6px 10px 26px}
+.brand-mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#C9A15E,#8A6E3B);display:flex;align-items:center;justify-content:center;font-family:'Unbounded',sans-serif;font-weight:700;font-size:15px;color:#181B1D;flex:none}
+.brand-txt b{font-family:'Unbounded',sans-serif;font-size:15px;font-weight:600;display:block;letter-spacing:-.01em}
+.brand-txt span{font-size:11px;color:#8B8F92;letter-spacing:.03em;text-transform:uppercase}
+
+.nav{display:flex;flex-direction:column;gap:2px;flex:1}
+.nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;background:transparent;border:0;color:#B9BCBE;font-size:14px;font-weight:500;cursor:pointer;text-align:left;width:100%}
+.nav-item:hover{background:#232629;color:#fff}
+.nav-item.on{background:#2A2E31;color:#fff}
+
+.sidebar-foot{padding:12px;border-top:1px solid #2A2E31;margin-top:8px;display:flex;align-items:center;gap:10px}
+.avatar{width:32px;height:32px;border-radius:8px;background:#2A2E31;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none}
+
+/* MAIN */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{background:#F6F5F2;border-bottom:1px solid #DEDAD1;padding:18px 32px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:10}
+.page-title{font-family:'Unbounded',sans-serif;font-weight:600;font-size:19px;letter-spacing:-.01em}
+.topbar .sp{flex:1}
+.search{width:280px;padding:10px 14px;border:1px solid #DEDAD1;border-radius:9px;background:#fff;font-size:13.5px}
+.search:focus{outline:none;border-color:#181B1D}
+.btn{border:1px solid #181B1D;background:transparent;color:#181B1D;border-radius:9px;padding:10px 16px;font-weight:600;font-size:13.5px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.btn.gold{background:linear-gradient(135deg,#C9A15E,#B8862B);border-color:transparent;color:#181B1D}
+.btn.gold:hover{filter:brightness(1.06)}
+.btn:disabled{opacity:.4;cursor:default}
+
+.content{padding:28px 32px 90px;max-width:1280px;width:100%;margin:0 auto}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.stat-card{background:#fff;border:1px solid #E4E1D9;border-radius:14px;padding:18px 20px}
+.stat-card .lbl{font-size:12px;color:#8B8B84;font-weight:500;margin-bottom:8px}
+.stat-card .val{font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.02em}
+.stat-card .sub{font-size:12px;color:#9A9A93;margin-top:4px}
+
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
+.chip{border:1px solid #DEDAD1;background:#fff;border-radius:999px;padding:7px 14px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;font-weight:500;color:#4C4F50}
+.chip.on{background:#181B1D;border-color:#181B1D;color:#fff}
+
+.leads-table{background:#fff;border:1px solid #E4E1D9;border-radius:16px;overflow:hidden}
+.lt-head{display:grid;grid-template-columns:3px 1.8fr 1fr 1fr .9fr .8fr;gap:14px;padding:13px 20px;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:#9A9A93;font-weight:600;border-bottom:1px solid #EEECE5;background:#FAF9F6}
+.lt-row{display:grid;grid-template-columns:3px 1.8fr 1fr 1fr .9fr .8fr;gap:14px;align-items:center;padding:15px 20px;border-bottom:1px solid #EEECE5;cursor:pointer;transition:background .12s}
+.lt-row:hover{background:#FAF9F6}
+.lt-bar{width:3px;height:34px;border-radius:2px}
+.lt-name{font-weight:600;font-size:14.5px}
+.lt-phone{font-size:12.5px;color:#9A9A93;margin-top:2px}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#5B5F60;font-weight:500}
+.src-badge{display:inline-flex;align-items:center;gap:5px;background:#F1EFE9;border-radius:6px;padding:3px 8px;font-size:11.5px;font-weight:600;color:#4C4F50}
+.timeago{font-size:12px;color:#9A9A93;text-align:right}
+
+.empty{text-align:center;padding:70px 32px;background:#fff;border-radius:16px;border:1px solid #E4E1D9}
+.empty h2{font-family:'Unbounded',sans-serif;font-size:20px;margin-bottom:10px}
+.empty p{color:#8B8B84;margin-bottom:22px;font-size:14px}
+
+/* DRAWER */
+.overlay{position:fixed;inset:0;background:rgba(24,27,29,.45);display:flex;justify-content:flex-end;z-index:100}
+.drawer{width:100%;max-width:520px;height:100%;background:#F6F5F2;overflow-y:auto;animation:sl .22s ease-out}
+@keyframes sl{from{transform:translateX(26px);opacity:.5}to{transform:none;opacity:1}}
+.d-head{position:sticky;top:0;background:#F6F5F2;border-bottom:1px solid #E4E1D9;padding:20px 26px;display:flex;justify-content:space-between;align-items:center;z-index:2}
+.d-head h2{font-family:'Unbounded',sans-serif;font-size:18px;font-weight:600}
+.d-close{border:0;background:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;color:#5B5F60;border:1px solid #E4E1D9}
+.d-body{padding:24px 26px 60px}
+.sec{background:#fff;border:1px solid #E4E1D9;border-radius:14px;padding:18px 20px;margin-bottom:16px}
+.sec h3{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#9A9A93;font-weight:700;margin-bottom:14px}
+
+.stage-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.stage-btn{border:1.5px solid #E4E1D9;background:#fff;border-radius:9px;padding:11px 6px;font-size:11.5px;font-weight:600;text-align:center;cursor:pointer;color:#5B5F60}
+.stage-btn.on{background:#181B1D;border-color:#181B1D;color:#fff}
+
+.fld{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.fld:last-child{margin-bottom:0}
+.fld>span{font-size:12px;color:#8B8B84;font-weight:600}
+.fld input,.fld select,.fld textarea{padding:10px 13px;border:1px solid #E4E1D9;border-radius:9px;background:#FAF9F6;font-size:14px;resize:vertical}
+.fld input:focus,.fld select:focus,.fld textarea:focus{outline:none;border-color:#181B1D;background:#fff}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.link-del{border:0;background:none;color:#B23A22;font-size:13px;font-weight:600;cursor:pointer;padding:0;margin-top:6px}
+
+/* COMMENTS */
+.comments-sec{max-height:300px;overflow-y:auto}
+.comment{background:#FAF9F6;border-radius:9px;padding:12px;margin-bottom:10px;font-size:13px}
+.comment-author{font-weight:600;color:#181B1D;font-size:12px}
+.comment-text{color:#5B5F60;margin-top:4px;line-height:1.4}
+.comment-time{font-size:11px;color:#9A9A93;margin-top:6px}
+.comment-form{display:flex;gap:8px;margin-top:14px}
+.comment-form input{flex:1;padding:8px 12px;border:1px solid #E4E1D9;border-radius:8px;font-size:13px}
+.comment-form button{padding:8px 14px;background:#181B1D;color:#fff;border:0;border-radius:8px;font-weight:600;font-size:12px;cursor:pointer}
+
+.fab{position:fixed;right:32px;bottom:32px;background:linear-gradient(135deg,#C9A15E,#B8862B);color:#181B1D;border:0;border-radius:14px;padding:15px 22px;font-weight:700;font-size:14.5px;cursor:pointer;box-shadow:0 10px 28px rgba(184,134,43,.35);z-index:50}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#181B1D;color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;z-index:300}
+
+@media(max-width:900px){
+  .sidebar{display:none}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .lt-head{display:none}
+  .lt-row{grid-template-columns:3px 1fr;grid-template-areas:"bar main";padding:14px 16px}
+  .lt-row>.pill,.lt-row>.src-badge,.lt-row>.timeago{display:none}
+  .content{padding:20px 16px 90px}
+  .topbar{padding:14px 16px}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useMemo } = React;
+
+const API_URL = "https://schuvtwhwzvtczrvlncj.supabase.co/functions/v1/leads-api";
+
+const STAGES = [
+  { id: 'new', label: 'Новий', color: '#9A9A93' },
+  { id: 'contacted', label: 'Контактовано', color: '#3E7A4E' },
+  { id: 'qualified', label: 'Квалифікований', color: '#0066CC' },
+  { id: 'proposal', label: 'Пропозиція', color: '#FF9800' },
+  { id: 'negotiation', label: 'Переговори', color: '#7C3AED' },
+  { id: 'won', label: 'Виграно', color: '#059669' },
+];
+
+const SEGMENTS = [
+  { id: 'unknown', label: 'Невідомо' },
+  { id: 'residential', label: 'Жилий' },
+  { id: 'commercial', label: 'Комерційний' },
+  { id: 'government', label: 'Державний' },
+];
+
+const SOURCES = [
+  { id: 'instagram', label: 'Instagram', short: 'IG' },
+  { id: 'facebook', label: 'Facebook', short: 'FB' },
+  { id: 'google', label: 'Google', short: 'G' },
+  { id: 'website', label: 'Сайт', short: 'WEB' },
+  { id: 'telegram', label: 'Telegram', short: 'TG' },
+  { id: 'phone', label: 'Телефон', short: 'TEL' },
+  { id: 'recommendation', label: 'Рекомендація', short: 'REC' },
+];
+
+const statusOf = (status) => STAGES.find(s => s.id === status) || STAGES[0];
+const srcOf = (source) => SOURCES.find(s => s.id === source) || SOURCES[0];
+const segLabel = (seg) => SEGMENTS.find(s => s.id === seg)?.label || 'Невідомо';
+
+const digitsOf = (phone) => (phone || '').replace(/\D/g, '');
+const fmtMoney = (val) => `${(val || 0).toLocaleString('uk-UA')} ₴`;
+const rel = (date, now) => {
+  if (!date) return '';
+  const d = new Date(date);
+  const secs = (now - d) / 1000;
+  if (secs < 60) return 'щойно';
+  if (secs < 3600) return `${Math.floor(secs / 60)}м`;
+  if (secs < 86400) return `${Math.floor(secs / 3600)}г`;
+  return `${Math.floor(secs / 86400)}д`;
+};
+
+function App() {
+  const [leads, setLeads] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [statusF, setStatusF] = useState('');
+  const [openId, setOpenId] = useState(null);
+  const [adding, setAdding] = useState(false);
+  const [toastMsg, setToastMsg] = useState('');
+  const [comments, setComments] = useState({});
+  const [newComments, setNewComments] = useState({});
+  const now = new Date();
+
+  useEffect(() => {
+    loadLeads();
+  }, []);
+
+  const loadLeads = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(API_URL, { method: 'GET' });
+      if (res.ok) {
+        const data = await res.json();
+        setLeads(data);
+        // Завантажимо коментарі з localStorage
+        const savedComments = JSON.parse(localStorage.getItem('lead_comments') || '{}');
+        setComments(savedComments);
+      }
+    } catch (e) {
+      showToast('Помилка завантаження');
+    }
+    setLoading(false);
+  };
+
+  const showToast = (msg) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(''), 3000);
+  };
+
+  const saveLead = async (lead) => {
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(lead)
+      });
+      if (res.ok) {
+        const newLead = await res.json();
+        setLeads([newLead, ...leads]);
+        setAdding(false);
+        showToast('Лід додано!');
+      }
+    } catch (e) {
+      showToast('Помилка збереження');
+    }
+  };
+
+  const updateLead = async (id, changes) => {
+    try {
+      const res = await fetch(`${API_URL}?id=${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(changes)
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setLeads(leads.map(l => l.id === id ? updated : l));
+        showToast('Оновлено');
+      }
+    } catch (e) {
+      showToast('Помилка оновлення');
+    }
+  };
+
+  const removeLead = async (id) => {
+    if (!confirm('Видалити?')) return;
+    try {
+      const res = await fetch(`${API_URL}?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setLeads(leads.filter(l => l.id !== id));
+        setOpenId(null);
+        showToast('Видалено');
+      }
+    } catch (e) {
+      showToast('Помилка видалення');
+    }
+  };
+
+  const addComment = (leadId, text) => {
+    if (!text.trim()) return;
+    const leadComments = comments[leadId] || [];
+    const updated = [...leadComments, { text, author: 'Ви', time: new Date().toISOString() }];
+    const newComments = { ...comments, [leadId]: updated };
+    setComments(newComments);
+    localStorage.setItem('lead_comments', JSON.stringify(newComments));
+    setNewComments({ ...newComments, [leadId]: '' });
+    showToast('Коментар додано');
+  };
+
+  const listItems = leads.filter(l => {
+    const q = search.toLowerCase();
+    const match = !q || l.name?.toLowerCase().includes(q) || l.phone?.includes(q) || l.email?.toLowerCase().includes(q);
+    const stMatch = !statusF || l.status === statusF;
+    return match && stMatch;
+  });
+
+  const openLead = leads.find(l => l.id === openId);
+  const leadCommentsList = openLead ? comments[openLead.id] || [] : [];
+
+  const stats = [
+    { label: 'Всього лідів', val: leads.length },
+    { label: 'Нових', val: leads.filter(l => l.status === 'new').length },
+    { label: 'Виграних', val: leads.filter(l => l.status === 'won').length },
+    { label: 'Сума', val: fmtMoney(leads.reduce((sum, l) => sum + (l.budget || 0), 0)) },
+  ];
+
+  return (
+    <div className="app">
+      <aside className="sidebar">
+        <div className="brand">
+          <div className="brand-mark">AP</div>
+          <div className="brand-txt">
+            <b>ADT Print</b>
+            <span>CRM СИСТЕМА</span>
+          </div>
+        </div>
+        <nav className="nav">
+          <div className="nav-item on">📊 Ліди</div>
+          <div className="nav-item">📈 Дашборд</div>
+          <div className="nav-item">💼 Заги</div>
+          <div style={{ borderTop: '1px solid #2A2E31', marginTop: 'auto', paddingTop: '12px', color: '#63676A', fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '.08em', padding: '12px' }}>ДЖЕРЕЛА</div>
+          <div className="nav-item">📱 Instagram</div>
+          <div className="nav-item">👍 Facebook</div>
+          <div className="nav-item">🔍 Google</div>
+          <div className="nav-item">🌐 Сайт</div>
+          <div className="nav-item">✈️ Telegram</div>
+          <div className="nav-item">☎️ Дзвінок</div>
+          <div className="nav-item">💬 Рекомендація</div>
+        </nav>
+        <div className="sidebar-foot">
+          <div className="avatar">AP</div>
+          <div className="who">
+            <b>ADT Print</b>
+            <span>3D друк</span>
+          </div>
+        </div>
+      </aside>
+
+      <main className="main">
+        <div className="topbar">
+          <h1 className="page-title">Ліди</h1>
+          <input type="text" placeholder="Пошук..." className="search" value={search} onChange={e => setSearch(e.target.value)} />
+          <div className="sp" />
+        </div>
+
+        <div className="content">
+          <div className="stats">
+            {stats.map((s, i) => (
+              <div key={i} className="stat-card">
+                <div className="lbl">{s.label}</div>
+                <div className="val">{typeof s.val === 'string' ? s.val : s.val}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="filters">
+            {[{ id: '', label: 'Всі' }, ...STAGES].map(s => (
+              <button key={s.id} className={`chip ${statusF === s.id ? 'on' : ''}`} onClick={() => setStatusF(s.id)}>
+                <span className="d" style={{ background: s.color, display: s.color ? 'block' : 'none' }} />
+                {s.label}
+              </button>
+            ))}
+          </div>
+
+          {listItems.length === 0 ? (
+            <div className="empty">
+              <h2>Ліди не знайдені</h2>
+              <p>Додайте першого ліда вручну або чекайте на ліди з форми</p>
+              <button className="btn gold" onClick={() => setAdding(true)}>+ Додати лід</button>
+            </div>
+          ) : (
+            <div className="leads-table">
+              <div className="lt-head">
+                <span></span><span>Клієнт</span><span>Статус</span><span>Тип клієнта</span><span>Джерело</span><span style={{ textAlign: 'right' }}>Оновлено</span>
+              </div>
+              {listItems.map(l => {
+                const st = statusOf(l.status);
+                return (
+                  <div key={l.id} className="lt-row" onClick={() => setOpenId(l.id)}>
+                    <span className="lt-bar" style={{ background: st.color }} />
+                    <div>
+                      <div className="lt-name">{l.name || l.phone}</div>
+                      <div className="lt-phone">{l.phone}</div>
+                    </div>
+                    <span className="pill"><span style={{ background: st.color, width: 7, height: 7, borderRadius: '50%' }} />{st.label}</span>
+                    <span className="pill">{segLabel(l.segment)}</span>
+                    <span className="src-badge">{srcOf(l.source).short}</span>
+                    <span className="timeago">{rel(l.created_at, now)}{l.budget ? <><br /><b style={{ fontSize: '13px' }}>{fmtMoney(l.budget)}</b></> : null}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {openLead && (
+          <div className="overlay" onClick={() => setOpenId(null)}>
+            <aside className="drawer" onClick={e => e.stopPropagation()}>
+              <div className="d-head">
+                <h2>{openLead.name || openLead.phone}</h2>
+                <button className="d-close" onClick={() => setOpenId(null)}>✕</button>
+              </div>
+              <div className="d-body">
+                <div className="sec">
+                  <h3>Етап угоди</h3>
+                  <div className="stage-grid">
+                    {STAGES.map(s => (
+                      <button key={s.id} className={`stage-btn ${openLead.status === s.id ? 'on' : ''}`} onClick={() => updateLead(openLead.id, { status: s.id })}>
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="stage-grid" style={{ marginTop: 7, gridTemplateColumns: '1fr' }}>
+                    <button className={`stage-btn ${openLead.status === 'lost' ? 'on' : ''}`} onClick={() => updateLead(openLead.id, { status: 'lost' })} style={openLead.status === 'lost' ? { background: '#B23A22', borderColor: '#B23A22', color: '#fff' } : {}}>
+                      Відмова
+                    </button>
+                  </div>
+                </div>
+
+                <div className="sec">
+                  <h3>Контактні дані</h3>
+                  <div className="fld">
+                    <span>Ім'я / Назва</span>
+                    <input value={openLead.name} onChange={e => updateLead(openLead.id, { name: e.target.value })} />
+                  </div>
+                  <div className="grid2">
+                    <div className="fld">
+                      <span>Телефон</span>
+                      <input value={openLead.phone || ''} onChange={e => updateLead(openLead.id, { phone: e.target.value })} />
+                    </div>
+                    <div className="fld">
+                      <span>Email</span>
+                      <input value={openLead.email || ''} onChange={e => updateLead(openLead.id, { email: e.target.value })} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="sec">
+                  <h3>Класифікація</h3>
+                  <div className="fld">
+                    <span>Тип клієнта</span>
+                    <select value={openLead.segment} onChange={e => updateLead(openLead.id, { segment: e.target.value })}>
+                      {SEGMENTS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+                    </select>
+                  </div>
+                  <div className="fld">
+                    <span>Джерело ліда</span>
+                    <select value={openLead.source || 'instagram'} onChange={e => updateLead(openLead.id, { source: e.target.value })}>
+                      {SOURCES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+                    </select>
+                  </div>
+                  <div className="fld">
+                    <span>Бюджет, ₴</span>
+                    <input type="number" value={openLead.budget || 0} onChange={e => updateLead(openLead.id, { budget: Number(e.target.value) })} />
+                  </div>
+                </div>
+
+                <div className="sec comments-sec">
+                  <h3>Коментарі ({leadCommentsList.length})</h3>
+                  {leadCommentsList.map((c, i) => (
+                    <div key={i} className="comment">
+                      <div className="comment-author">{c.author}</div>
+                      <div className="comment-text">{c.text}</div>
+                      <div className="comment-time">{new Date(c.time).toLocaleString('uk-UA')}</div>
+                    </div>
+                  ))}
+                  <div className="comment-form">
+                    <input
+                      type="text"
+                      placeholder="Додати коментар..."
+                      value={newComments[openLead.id] || ''}
+                      onChange={e => setNewComments({ ...newComments, [openLead.id]: e.target.value })}
+                      onKeyPress={e => e.key === 'Enter' && addComment(openLead.id, e.target.value)}
+                    />
+                    <button onClick={() => addComment(openLead.id, newComments[openLead.id] || '')}>✓</button>
+                  </div>
+                </div>
+
+                <button className="link-del" onClick={() => removeLead(openLead.id)}>Видалити лід</button>
+              </div>
+            </aside>
+          </div>
+        )}
+
+        {adding && (
+          <div className="overlay" onClick={() => setAdding(false)}>
+            <aside className="drawer" onClick={e => e.stopPropagation()}>
+              <div className="d-head">
+                <h2>Новий лід</h2>
+                <button className="d-close" onClick={() => setAdding(false)}>✕</button>
+              </div>
+              <AddForm onSave={saveLead} onCancel={() => setAdding(false)} />
+            </aside>
+          </div>
+        )}
+
+        {leads.length > 0 && !adding && !openLead && <button className="fab" onClick={() => setAdding(true)}>+ Новий лід</button>}
+        {toastMsg && <div className="toast">{toastMsg}</div>}
+      </main>
+    </div>
+  );
+}
+
+function AddForm({ onSave, onCancel }) {
+  const [f, setF] = useState({ name: '', phone: '', email: '', source: 'instagram', segment: 'unknown', budget: 0, status: 'new' });
+  const set = (k, v) => setF(x => ({ ...x, [k]: v }));
+  const can = f.name.trim() || digitsOf(f.phone).length >= 9;
+
+  return (
+    <div className="d-body">
+      <div className="sec">
+        <h3>Контактні дані</h3>
+        <div className="fld">
+          <span>Ім'я / Назва</span>
+          <input autoFocus value={f.name} onChange={e => set('name', e.target.value)} />
+        </div>
+        <div className="fld">
+          <span>Телефон</span>
+          <input type="tel" value={f.phone} onChange={e => set('phone', e.target.value)} />
+        </div>
+        <div className="fld">
+          <span>Email</span>
+          <input type="email" value={f.email} onChange={e => set('email', e.target.value)} />
+        </div>
+      </div>
+      <div className="sec">
+        <h3>Класифікація</h3>
+        <div className="fld">
+          <span>Тип клієнта</span>
+          <select value={f.segment} onChange={e => set('segment', e.target.value)}>
+            {SEGMENTS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+          </select>
+        </div>
+        <div className="fld">
+          <span>Джерело ліда</span>
+          <select value={f.source} onChange={e => set('source', e.target.value)}>
+            {SOURCES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+          </select>
+        </div>
+        <div className="fld">
+          <span>Бюджет, ₴ (орієнтовно)</span>
+          <input type="number" value={f.budget} onChange={e => set('budget', Number(e.target.value))} />
+        </div>
+      </div>
+      <button className="btn gold" style={{ width: '100%', justifyContent: 'center', padding: '13px', marginBottom: '10px' }} disabled={!can} onClick={() => can && onSave(f)}>
+        Зберегти лід
+      </button>
+      <button className="btn" style={{ width: '100%', justifyContent: 'center', padding: '13px' }} onClick={onCancel}>
+        Скасувати
+      </button>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
